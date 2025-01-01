@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Body Type Selector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-r from-blue-300 to-indigo-500 flex flex-col items-center justify-center min-h-screen p-6">
+    <div class="bg-white shadow-xl rounded-lg w-full max-w-5xl p-6 flex flex-col gap-8 md:flex-row">
+        <!-- Image Box -->
+        <div class="flex flex-col items-center justify-start md:w-2/3 bg-gray-50 p-6 rounded-lg shadow-md">
+            <h1 class="text-3xl font-bold text-blue-600 mb-6">Select Your Body Type</h1>
+
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Endomorph -->
+                <div 
+                    class="cursor-pointer rounded-lg border-4 border-transparent hover:border-blue-500 transition duration-300 transform hover:scale-105"
+                    onclick="selectBodyType('Endomorph')" 
+                    id="endomorph">
+                    <img src="static/endomorph.png" alt="Endomorph" class="w-48 h-72 object-contain">
+                </div>
+                <!-- Mesomorph -->
+                <div 
+                    class="cursor-pointer rounded-lg border-4 border-transparent hover:border-blue-500 transition duration-300 transform hover:scale-105"
+                    onclick="selectBodyType('Mesomorph')" 
+                    id="mesomorph">
+                    <img src="static/mesomorph.png" alt="Mesomorph" class="w-48 h-72 object-contain">
+                </div>
+                <!-- Ectomorph -->
+                <div 
+                    class="cursor-pointer rounded-lg border-4 border-transparent hover:border-blue-500 transition duration-300 transform hover:scale-105"
+                    onclick="selectBodyType('Ectomorph')" 
+                    id="ectomorph">
+                    <img src="static/ectomorph.png" alt="Ectomorph" class="w-48 h-72 object-contain">
+                </div>
+            </div>
+        </div>
+
+        <!-- Text Box -->
+        <div class="flex flex-col justify-between md:w-1/3 bg-indigo-50 p-6 rounded-lg shadow-md h-auto">
+            <div 
+                id="result" class="text-left text-gray-700 text-lg font-semibold p-4 rounded-lg border-2 border-blue-500 bg-white shadow-md h-64 overflow-y-auto text-base">
+                No selection made yet.
+            </div>
+            <div 
+                id="progress" 
+                class="mt-4 text-gray-700 text-base font-medium p-2 rounded-lg bg-white shadow-md h-16 text-lg flex items-center justify-center">
+                <!-- Progress output -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function selectBodyType(type) {
+            // Clear previous selection
+            document.querySelectorAll('.photo').forEach(photo => {
+                photo.classList.remove('border-blue-500');
+            });
+
+            // Highlight the selected photo
+            document.getElementById(type.toLowerCase()).classList.add('border-blue-500');
+
+            // Display the result with specific text
+            const resultElement = document.getElementById('result');
+            const progressElement = document.getElementById('progress');
+            let specificText = '';
+
+            switch (type) {
+                case 'Endomorph':
+                    specificText = `You selected: Endomorph\n
+                    <ul class='pl-6'>
+                        <li><input type='checkbox' class='checkbox' data-type='Endomorph'> Body is rounded with wide hips.</li>
+                        <li><input type='checkbox' class='checkbox' data-type='Endomorph'> Gain weight easily and find it hard to lose.</li>
+                        <li><input type='checkbox' class='checkbox' data-type='Endomorph'> Have a slower metabolism.</li>
+                        <li><input type='checkbox' class='checkbox' data-type='Endomorph'> Bone structure is thick with shorter limbs.</li>
+                    </ul>`;
+                    break;
+                case 'Mesomorph':
+                    specificText = `You selected: Mesomorph\n
+                    <ul class='list-disc pl-6'>
+                        <li><input type='checkbox' class='checkbox' data-type='Mesomorph'> Shoulders are broader than the waist.</li>
+                        <li><input type='checkbox' class='checkbox' data-type='Mesomorph'> Naturally muscular physique.</li>
+                        <li><input type='checkbox' class='checkbox' data-type='Mesomorph'> Gain muscle quickly when exercising.</li>
+                        <li><input type='checkbox' class='checkbox' data-type='Mesomorph'> Balanced metabolism with medium bone density.</li>
+                    </ul>`;
+                    break;
+                case 'Ectomorph':
+                    specificText = `You selected: Ectomorph\n
+                    <ul class='list-disc pl-6'>
+                        <li><input type='checkbox' class='checkbox' data-type='Ectomorph'> Thin frame with narrow shoulders.</li>
+                        <li><input type='checkbox' class='checkbox' data-type='Ectomorph'> Find it hard to gain weight or muscle.</li>
+                        <li><input type='checkbox' class='checkbox' data-type='Ectomorph'> High metabolic rate.</li>
+                        <li><input type='checkbox' class='checkbox' data-type='Ectomorph'> Long limbs with small bone structure.</li>
+                    </ul>`;
+                    break;
+            }
+
+            // Add content and animate visibility
+            resultElement.innerHTML = specificText;
+            resultElement.classList.remove('opacity-0', 'scale-90');
+            resultElement.classList.add('opacity-100', 'scale-100');
+
+            // Add checkbox listener
+            document.querySelectorAll('.checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', calculateProgress);
+            });
+
+            // Reset progress display
+            progressElement.textContent = '';
+        }
+
+        function calculateProgress() {
+            const checkboxes = document.querySelectorAll('.checkbox');
+            const counts = { Endomorph: 0, Mesomorph: 0, Ectomorph: 0 };
+
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    counts[checkbox.dataset.type]++;
+                }
+            });
+
+            const progressElement = document.getElementById('progress');
+            let message = '';
+            Object.keys(counts).forEach(type => {
+                if (counts[type] === 1) {
+                    message = `Do you think you are a ${type}?`;
+                } else if (counts[type] === 2) {
+                    message = `Wow, you may be a ${type}.`;
+                } else if (counts[type] === 3) {
+                    message = `There is a very high chance you are a ${type}.`;
+                } else if (counts[type] === 4) {
+                    message = `You are definitely a ${type}.`;
+                }
+            });
+            progressElement.textContent = message;
+        }
+    </script>
+</body>
+</html>

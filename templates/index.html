@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Body Fat Predictor</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            min-height: 100vh;
+        }
+        h1 {
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .output {
+            text-align: left;
+            font-size: 1.2em;
+            color: #333;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <h1 class="text-center mb-4">Body Fat Percentage Predictor</h1>
+
+        <!-- Input Form -->
+        <div class="card shadow-lg mb-4">
+            <div class="card-body">
+                <form method="POST" action="/predict" class="row g-3">
+                    <div class="col-md-2">
+                        <label for="Age" class="form-label">Age</label>
+                        <input type="number" class="form-control" name="Age" id="Age" 
+                               value="{{ request.form['Age'] if request.form.get('Age') else '' }}" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="Weight" class="form-label">Weight (kg)</label>
+                        <input type="number" class="form-control" name="Weight" id="Weight" 
+                               value="{{ request.form['Weight'] if request.form.get('Weight') else '' }}" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="Height" class="form-label">Height (cm)</label>
+                        <input type="number" class="form-control" name="Height" id="Height" 
+                               value="{{ request.form['Height'] if request.form.get('Height') else '' }}" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="Abdomen" class="form-label">Abdomen (cm)</label>
+                        <input type="number" class="form-control" name="Abdomen" id="Abdomen" 
+                               value="{{ request.form['Abdomen'] if request.form.get('Abdomen') else '' }}" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="Thigh" class="form-label">Thigh (cm)</label>
+                        <input type="number" class="form-control" name="Thigh" id="Thigh" 
+                               value="{{ request.form['Thigh'] if request.form.get('Thigh') else '' }}" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="Chest" class="form-label">Chest (cm)</label>
+                        <input type="number" class="form-control" name="Chest" id="Chest" 
+                               value="{{ request.form['Chest'] if request.form.get('Chest') else '' }}" required>
+                    </div>
+                    
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-primary">Predict</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Output -->
+        {% if prediction_text %}
+        <div class="output alert alert-success">
+            {{ prediction_text }}
+        </div>
+        {% endif %}
+
+        <!-- Inputs for Target Weight and Weight Loss per Week -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label for="targetWeight" class="form-label">Target Weight (kg)</label>
+                <input type="number" id="targetWeight" class="form-control" placeholder="Enter target weight">
+            </div>
+            <div class="col-md-4">
+                <label for="lossPerWeek" class="form-label">Weight Loss per Week (kg)</label>
+                <input type="number" id="lossPerWeek" class="form-control" placeholder="Enter weekly weight loss" value="0.5">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button class="btn btn-primary w-100" onclick="updateGraph()">Update Graph</button>
+            </div>
+        </div>
+
+        <!-- Dynamic Graph -->      
+        <!-- Dynamic Graph with 1.5x Size -->
+        <div class="graph-placeholder" style="max-width: 750px; height: 375px; margin: auto;">
+            <canvas id="weightLossGraph" style="background-color: rgba(240, 240, 240, 0.6); border-radius: 8px;"></canvas>
+        </div>
+
+
+    </div>
+
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Graph Data Passed from Backend
+        const weeks = {{ weeks_list | tojson }};
+        const weights = {{ weights_list | tojson }};
+
+        // Initialize Chart
+
+        const ctx = document.getElementById('weightLossGraph').getContext('2d');
+        let weightLossGraph = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: weeks,
+                datasets: [{
+                    label: 'Weight (kg)',
+                    data: weights,
+                    borderColor: 'blue',
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    fill: false,
+                    backgroundColor: 'rgba(240, 240, 240, 0.6)'  // Graph background
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Weeks' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Weight (kg)' }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'black'  // Axis label color
+                        }
+                    }
+                }
+            }
+        });
+
+
+
+        // Function to Update Graph Based on Inputs
+        function updateGraph() {
+            const targetWeight = parseFloat(document.getElementById('targetWeight').value);
+            const lossPerWeek = parseFloat(document.getElementById('lossPerWeek').value);
+
+            if (!targetWeight || targetWeight >= weights[0]) {
+                alert('Please enter a valid target weight less than the current weight.');
+                return;
+            }
+            if (!lossPerWeek || lossPerWeek <= 0) {
+                alert('Please enter a positive value for weight loss per week.');
+                return;
+            }
+
+            // Recalculate Weight Loss Path
+            const newWeeks = [];
+            const newWeights = [];
+            let currentWeight = weights[0];
+            let week = 0;
+
+            while (currentWeight > targetWeight) {
+                newWeeks.push(week);
+                newWeights.push(currentWeight);
+                currentWeight -= lossPerWeek;
+                week++;
+            }
+
+            // Update Chart Data
+            weightLossGraph.data.labels = newWeeks;
+            weightLossGraph.data.datasets[0].data = newWeights;
+            weightLossGraph.update();
+        }
+    </script>
+</body>
+</html>

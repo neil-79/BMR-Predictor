@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Macros Calculator</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #2C3E50, #4CA1AF);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-weight: 600;
+            color: #2C3E50;
+        }
+
+        .btn-custom {
+            background-color: #4CA1AF;
+            color: white;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background-color: #2C3E50;
+            color: white;
+        }
+
+        #chart-container {
+            max-width: 400px;
+            margin: 20px auto;
+        }
+
+        .total-calories {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2C3E50;
+        }
+
+        .floating-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #A3D5D3; /* Lighter teal */
+            color: #2C3E50;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 25px;
+            font-size: 1em;
+            font-weight: 600;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            text-decoration: none;
+        }
+        
+        .floating-button:hover {
+            background-color: #7FB6B3; /* Slightly darker teal on hover */
+            color: #2C3E50;
+            transform: translateY(-3px);
+        }
+        .btn-small-custom {
+            background-color: #A3D5D3; /* Light teal */
+            color: #2C3E50; /* Dark text for readability */
+            border: none;
+            border-radius: 20px;
+            padding: 5px 10px;
+            font-size: 0.8em;
+            font-weight: 600;
+            transition: all 0.3s ease-in-out;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        
+        .btn-small-custom:hover {
+            background-color: #7FB6B3; /* Slightly darker teal on hover */
+            color: #2C3E50;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        
+    </style>
+</head>
+<body>
+    <div class="card">
+        <!-- Page Title -->
+        <h1><i class="fas fa-calculator"></i> Health Macros Calculator</h1>
+        
+        <!-- Input Form -->
+        <form action="/calculate" method="POST" class="mb-4">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="weight" class="form-label">Weight (kg)</label>
+                    <input type="number" class="form-control" id="weight" name="Weight" value="{{ weight }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="height" class="form-label">Height (cm)</label>
+                    <input type="number" class="form-control" id="height" name="Height" value="{{ height }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="sex" class="form-label">Sex</label>
+                    <select class="form-select" id="sex" name="Sex" required>
+                        <option value="Male" {% if sex == 'Male' %}selected{% endif %}>Male</option>
+                        <option value="Female" {% if sex == 'Female' %}selected{% endif %}>Female</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="age" class="form-label">Age</label>
+                    <input type="number" class="form-control" id="age" name="Age" value="{{ age }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="body_fat" class="form-label">Body Fat (%)</label>
+                    <input type="number" class="form-control" id="body_fat" name="BodyFat" value="{{ body_fat }}">
+                    <a href="{{ url_for('home') }}" class="btn btn-small-custom">Don't Know?</a>
+                </div>
+                <div class="col-md-4">
+                    <label for="body_type" class="form-label">Body Type</label>
+                    <select class="form-select" id="body_type" name="BodyType" required>
+                        <option value="Endomorphic" {% if body_type == 'Endomorphic' %}selected{% endif %}>Endomorphic</option>
+                        <option value="Ectomorphic" {% if body_type == 'Ectomorphic' %}selected{% endif %}>Ectomorphic</option>
+                        <option value="Mesomorphic" {% if body_type == 'Mesomorphic' %}selected{% endif %}>Mesomorphic</option>
+                    </select>
+                    <a href="{{ url_for('guide') }}" class="btn btn-small-custom">Don't Know?</a>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-custom px-5">Calculate</button>
+            </div>
+        </form>
+
+        <!-- Pie Chart -->
+        {% if protein and carbs and fat %}
+            <div id="chart-container">
+                <canvas id="macrosPieChart"></canvas>
+            </div>
+            <div class="total-calories">
+                Total Calories: <strong>{{ tdee }}</strong> kcal/day
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Floating Button -->
+    <a href="{{ url_for('somameasurement') }}" class="floating-button">Guide Me to Achieve My Goal</a>
+
+    <!-- Chart.js Script -->
+    {% if protein and carbs and fat %}
+    <script>
+        const protein = {{ protein }};
+        const carbs = {{ carbs }};
+        const fat = {{ fat }};
+        const total = protein + carbs + fat;
+
+        Chart.register(ChartDataLabels);
+
+        const ctx = document.getElementById('macrosPieChart').getContext('2d');
+        const macrosPieChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Protein', 'Carbs', 'Fats'],
+                datasets: [{
+                    data: [protein, carbs, fat],
+                    backgroundColor: ['#4CAF50', '#FFCA28', '#FF7043'],
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: { position: 'bottom' },
+                    datalabels: {
+                        color: '#fff',
+                        font: { weight: 'bold', size: 14 },
+                        formatter: (value) => {
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${percentage}%\n${value}g`;
+                        }
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    </script>
+    {% endif %}
+</body>
+</html>
